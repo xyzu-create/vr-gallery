@@ -28,7 +28,7 @@
         #info-panel h2 {
             margin: 0 0 10px 0;
             font-size: 20px;
-            color: #4CAF50;
+            color: #D4AF37;
         }
         
         #info-panel p {
@@ -50,7 +50,7 @@
         }
         
         #controls button {
-            background: #4CAF50;
+            background: #8B7355;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -62,7 +62,7 @@
         }
         
         #controls button:hover {
-            background: #45a049;
+            background: #A0826D;
             transform: scale(1.05);
         }
         
@@ -89,7 +89,7 @@
         
         #comment-panel h3 {
             margin: 0 0 15px 0;
-            color: #4CAF50;
+            color: #D4AF37;
             font-size: 18px;
         }
         
@@ -98,7 +98,7 @@
             width: 100%;
             padding: 10px;
             margin: 10px 0;
-            border: 1px solid #4CAF50;
+            border: 1px solid #8B7355;
             border-radius: 5px;
             background: rgba(255, 255, 255, 0.1);
             color: white;
@@ -112,7 +112,7 @@
         }
         
         #comment-panel button {
-            background: #4CAF50;
+            background: #8B7355;
             color: white;
             border: none;
             padding: 10px 20px;
@@ -124,7 +124,7 @@
         }
         
         #comment-panel button:hover {
-            background: #45a049;
+            background: #A0826D;
         }
         
         .comment {
@@ -132,12 +132,12 @@
             padding: 12px;
             margin: 10px 0;
             border-radius: 5px;
-            border-left: 3px solid #4CAF50;
+            border-left: 3px solid #D4AF37;
         }
         
         .comment-author {
             font-weight: bold;
-            color: #4CAF50;
+            color: #D4AF37;
             margin-bottom: 5px;
         }
         
@@ -157,7 +157,7 @@
             top: 50%;
             right: 0;
             transform: translateY(-50%);
-            background: #4CAF50;
+            background: #8B7355;
             color: white;
             border: none;
             padding: 15px 10px;
@@ -170,7 +170,7 @@
         }
         
         #toggle-comment:hover {
-            background: #45a049;
+            background: #A0826D;
             padding-right: 15px;
         }
         
@@ -190,7 +190,7 @@
         
         .spinner {
             border: 4px solid rgba(255, 255, 255, 0.3);
-            border-top: 4px solid #4CAF50;
+            border-top: 4px solid #D4AF37;
             border-radius: 50%;
             width: 40px;
             height: 40px;
@@ -262,24 +262,27 @@
     </div>
 
     <a-scene loading-screen="enabled: false">
-        <!-- 天空背景 -->
-        <a-sky color="#1a1a2e"></a-sky>
+        <!-- 360度美術館背景 -->
+        <a-sky src="gallery_360_background.jpg" rotation="0 0 0"></a-sky>
         
-        <!-- 環境光和燈光 -->
-        <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-        <a-entity light="type: directional; intensity: 0.5" position="1 2 1"></a-entity>
+        <!-- 環境光和燈光（調整為更自然的美術館光線）-->
+        <a-entity light="type: ambient; intensity: 0.9; color: #FFF8E7"></a-entity>
+        <a-entity light="type: directional; intensity: 0.6; color: #FFFFFF" position="2 4 1"></a-entity>
+        <a-entity light="type: point; intensity: 0.4; color: #FFF4E0" position="0 3 0"></a-entity>
         
-        <!-- 地板 -->
-        <a-plane position="0 0 0" rotation="-90 0 0" width="50" height="50" 
-                 color="#0f3460" shadow="receive: true"></a-plane>
+        <!-- 地板（木質地板效果）-->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" 
+                 color="#C8A882" shadow="receive: true" 
+                 material="roughness: 0.8; metalness: 0.1"></a-plane>
         
         <!-- 畫廊結構 -->
         <a-entity id="gallery-container"></a-entity>
         
         <!-- 相機（玩家視角） -->
-        <a-entity id="camera-rig" position="0 1.6 5">
+        <a-entity id="camera-rig" position="0 1.6 12">
             <a-camera id="camera" look-controls wasd-controls>
-                <a-cursor color="#4CAF50" opacity="0.8"></a-cursor>
+                <a-cursor color="#D4AF37" opacity="0.9" 
+                         raycaster="objects: .artwork-image"></a-cursor>
             </a-camera>
         </a-entity>
     </a-scene>
@@ -324,103 +327,186 @@
         // 創建畫廊
         function createGallery() {
             const container = document.getElementById('gallery-container');
-            const radius = 8; // 圓形畫廊的半徑
-            const totalWalls = Math.min(artworks.length, 24); // 最多顯示24件作品在圓形畫廊
             
-            for (let i = 0; i < totalWalls; i++) {
-                const angle = (i / totalWalls) * Math.PI * 2;
-                const x = Math.sin(angle) * radius;
-                const z = Math.cos(angle) * radius;
-                const rotation = -(angle * 180 / Math.PI);
-                
-                // 創建畫框
-                const frame = document.createElement('a-box');
-                frame.setAttribute('position', `${x} 1.6 ${z}`);
-                frame.setAttribute('rotation', `0 ${rotation} 0`);
-                frame.setAttribute('width', '2.5');
-                frame.setAttribute('height', '2');
-                frame.setAttribute('depth', '0.05');
-                frame.setAttribute('color', '#16213e');
-                frame.setAttribute('shadow', 'cast: true');
-                
-                // 創建圖片
-                const artwork = artworks[i];
-                const image = document.createElement('a-image');
-                image.setAttribute('src', `gallery_images/${artwork.filename}`);
-                image.setAttribute('position', `${x} 1.6 ${z - 0.03}`);
-                image.setAttribute('rotation', `0 ${rotation} 0`);
-                image.setAttribute('width', '2.3');
-                image.setAttribute('height', '1.8');
-                image.setAttribute('class', 'artwork-image');
-                image.setAttribute('data-index', i);
-                
-                // 點擊事件
-                image.addEventListener('click', () => {
-                    currentIndex = i;
-                    updateInfo();
-                    focusOnArtwork(x, z, rotation);
-                });
-                
-                // 創建標題牌
-                const titleEntity = document.createElement('a-entity');
-                titleEntity.setAttribute('position', `${x} 0.8 ${z - 0.1}`);
-                titleEntity.setAttribute('rotation', `0 ${rotation} 0`);
-                titleEntity.setAttribute('text', {
-                    value: artwork.source.substring(0, 15) + '...',
-                    align: 'center',
-                    width: 2,
-                    color: '#4CAF50'
-                });
-                
-                container.appendChild(frame);
-                container.appendChild(image);
-                container.appendChild(titleEntity);
-            }
+            // 使用多種佈局方式，避免過於整齊
+            const layouts = [
+                createCircularGallery,
+                createWallGallery,
+                createCornerGallery
+            ];
             
-            // 如果作品超過24件，創建額外的展示區域
-            if (artworks.length > 24) {
-                createAdditionalGalleries();
+            let artworkIndex = 0;
+            
+            // 主圓形畫廊（中央展區）
+            artworkIndex = createCircularGallery(container, artworkIndex, 18, 8, 0);
+            
+            // 左側牆面展區
+            artworkIndex = createWallGallery(container, artworkIndex, -10, -5, 20, 3, 4);
+            
+            // 右側牆面展區
+            artworkIndex = createWallGallery(container, artworkIndex, 10, -5, 20, 3, 4);
+            
+            // 後方展區（較遠）
+            artworkIndex = createWallGallery(container, artworkIndex, 0, -20, 30, 4, 5);
+            
+            // 角落展區
+            if (artworkIndex < artworks.length) {
+                createCornerGallery(container, artworkIndex);
             }
         }
         
-        // 創建額外的畫廊區域
-        function createAdditionalGalleries() {
-            const container = document.getElementById('gallery-container');
-            const remaining = artworks.length - 24;
-            const rows = Math.ceil(remaining / 6);
+        // 圓形畫廊佈局（主展區）
+        function createCircularGallery(container, startIndex, count, radius, yOffset) {
+            const endIndex = Math.min(startIndex + count, artworks.length);
+            const actualCount = endIndex - startIndex;
             
-            for (let row = 0; row < rows; row++) {
-                for (let col = 0; col < 6; col++) {
-                    const index = 24 + row * 6 + col;
-                    if (index >= artworks.length) break;
+            for (let i = 0; i < actualCount; i++) {
+                const index = startIndex + i;
+                const angle = (i / actualCount) * Math.PI * 2;
+                
+                // 添加隨機偏移，使排列不那麼規則
+                const radiusVariation = radius + (Math.random() - 0.5) * 1.5;
+                const angleVariation = angle + (Math.random() - 0.5) * 0.15;
+                
+                const x = Math.sin(angleVariation) * radiusVariation;
+                const z = Math.cos(angleVariation) * radiusVariation;
+                const y = 1.6 + yOffset + (Math.random() - 0.5) * 0.3; // 高度也有變化
+                const rotation = -(angleVariation * 180 / Math.PI) + (Math.random() - 0.5) * 5;
+                
+                createArtworkFrame(container, index, x, y, z, rotation, 2.2, 1.8);
+            }
+            
+            return endIndex;
+        }
+        
+        // 牆面畫廊佈局（側面展區）
+        function createWallGallery(container, startIndex, centerX, startZ, wallLength, rows, cols) {
+            let index = startIndex;
+            const spacing = wallLength / (cols + 1);
+            
+            for (let row = 0; row < rows && index < artworks.length; row++) {
+                for (let col = 0; col < cols && index < artworks.length; col++) {
+                    const x = centerX + (Math.random() - 0.5) * 0.5;
+                    const z = startZ - col * spacing + (Math.random() - 0.5) * 0.8;
+                    const y = 1.8 - row * 0.5 + (Math.random() - 0.5) * 0.2;
                     
-                    const x = (col - 2.5) * 3;
-                    const z = -15 - row * 4;
+                    // 面向中心或略有角度
+                    let rotation = centerX > 0 ? -90 : 90;
+                    rotation += (Math.random() - 0.5) * 10;
                     
-                    const frame = document.createElement('a-box');
-                    frame.setAttribute('position', `${x} 1.6 ${z}`);
-                    frame.setAttribute('width', '2.5');
-                    frame.setAttribute('height', '2');
-                    frame.setAttribute('depth', '0.05');
-                    frame.setAttribute('color', '#16213e');
+                    const width = 2.0 + Math.random() * 0.6;
+                    const height = 1.6 + Math.random() * 0.5;
                     
-                    const artwork = artworks[index];
-                    const image = document.createElement('a-image');
-                    image.setAttribute('src', `gallery_images/${artwork.filename}`);
-                    image.setAttribute('position', `${x} 1.6 ${z + 0.03}`);
-                    image.setAttribute('width', '2.3');
-                    image.setAttribute('height', '1.8');
-                    image.setAttribute('data-index', index);
-                    
-                    image.addEventListener('click', () => {
-                        currentIndex = index;
-                        updateInfo();
-                    });
-                    
-                    container.appendChild(frame);
-                    container.appendChild(image);
+                    createArtworkFrame(container, index, x, y, z, rotation, width, height);
+                    index++;
                 }
             }
+            
+            return index;
+        }
+        
+        // 角落畫廊佈局（填充剩餘空間）
+        function createCornerGallery(container, startIndex) {
+            const corners = [
+                { x: -12, z: -12, rotation: 45 },
+                { x: 12, z: -12, rotation: -45 },
+                { x: -12, z: 12, rotation: 135 },
+                { x: 12, z: 12, rotation: -135 }
+            ];
+            
+            let index = startIndex;
+            for (const corner of corners) {
+                if (index >= artworks.length) break;
+                
+                const x = corner.x + (Math.random() - 0.5) * 2;
+                const z = corner.z + (Math.random() - 0.5) * 2;
+                const y = 1.6 + (Math.random() - 0.5) * 0.4;
+                const rotation = corner.rotation + (Math.random() - 0.5) * 20;
+                
+                createArtworkFrame(container, index, x, y, z, rotation, 2.0, 1.6);
+                index++;
+            }
+        }
+        
+        // 創建作品框架和圖片
+        function createArtworkFrame(container, index, x, y, z, rotation, width, height) {
+            const artwork = artworks[index];
+            
+            // 創建畫框（米白色優雅框架）
+            const frame = document.createElement('a-box');
+            frame.setAttribute('position', `${x} ${y} ${z}`);
+            frame.setAttribute('rotation', `0 ${rotation} 0`);
+            frame.setAttribute('width', width + 0.2);
+            frame.setAttribute('height', height + 0.2);
+            frame.setAttribute('depth', '0.08');
+            frame.setAttribute('color', '#F5F5DC');
+            frame.setAttribute('shadow', 'cast: true');
+            frame.setAttribute('material', 'roughness: 0.3; metalness: 0.2');
+            
+            // 創建內框（深色）
+            const innerFrame = document.createElement('a-box');
+            const offsetX = Math.sin(rotation * Math.PI / 180) * 0.04;
+            const offsetZ = Math.cos(rotation * Math.PI / 180) * 0.04;
+            innerFrame.setAttribute('position', `${x + offsetX} ${y} ${z - offsetZ}`);
+            innerFrame.setAttribute('rotation', `0 ${rotation} 0`);
+            innerFrame.setAttribute('width', width + 0.1);
+            innerFrame.setAttribute('height', height + 0.1);
+            innerFrame.setAttribute('depth', '0.06');
+            innerFrame.setAttribute('color', '#8B7355');
+            
+            // 創建圖片
+            const image = document.createElement('a-image');
+            const imgOffsetX = Math.sin(rotation * Math.PI / 180) * 0.05;
+            const imgOffsetZ = Math.cos(rotation * Math.PI / 180) * 0.05;
+            image.setAttribute('src', `gallery_images/${artwork.filename}`);
+            image.setAttribute('position', `${x + imgOffsetX} ${y} ${z - imgOffsetZ}`);
+            image.setAttribute('rotation', `0 ${rotation} 0`);
+            image.setAttribute('width', width);
+            image.setAttribute('height', height);
+            image.setAttribute('class', 'artwork-image');
+            image.setAttribute('data-index', index);
+            
+            // 添加聚光燈效果
+            const spotlight = document.createElement('a-entity');
+            spotlight.setAttribute('light', 'type: spot; intensity: 0.6; angle: 45; penumbra: 0.5; color: #FFF8E7');
+            spotlight.setAttribute('position', `${x} ${y + 1.5} ${z}`);
+            spotlight.setAttribute('rotation', '-45 0 0');
+            
+            // 點擊事件
+            image.addEventListener('click', () => {
+                currentIndex = index;
+                updateInfo();
+                focusOnArtwork(x, z, rotation);
+            });
+            
+            // 創建標題牌（更小更精緻）
+            const titleBg = document.createElement('a-box');
+            const titleOffsetX = Math.sin(rotation * Math.PI / 180) * 0.06;
+            const titleOffsetZ = Math.cos(rotation * Math.PI / 180) * 0.06;
+            titleBg.setAttribute('position', `${x + titleOffsetX} ${y - height/2 - 0.3} ${z - titleOffsetZ}`);
+            titleBg.setAttribute('rotation', `0 ${rotation} 0`);
+            titleBg.setAttribute('width', width * 0.8);
+            titleBg.setAttribute('height', '0.15');
+            titleBg.setAttribute('depth', '0.02');
+            titleBg.setAttribute('color', '#F5F5DC');
+            
+            const titleEntity = document.createElement('a-entity');
+            titleEntity.setAttribute('position', `${x + titleOffsetX} ${y - height/2 - 0.3} ${z - titleOffsetZ + 0.02}`);
+            titleEntity.setAttribute('rotation', `0 ${rotation} 0`);
+            titleEntity.setAttribute('text', {
+                value: artwork.source.substring(0, 20) + (artwork.source.length > 20 ? '...' : ''),
+                align: 'center',
+                width: width * 0.7,
+                color: '#2C2416',
+                font: 'roboto'
+            });
+            
+            container.appendChild(frame);
+            container.appendChild(innerFrame);
+            container.appendChild(image);
+            container.appendChild(spotlight);
+            container.appendChild(titleBg);
+            container.appendChild(titleEntity);
         }
         
         // 聚焦到作品
