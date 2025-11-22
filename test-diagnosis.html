@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <title>藝廊診斷測試</title>
+    <style>
+        body {
+            font-family: 'Microsoft JhengHei', sans-serif;
+            padding: 20px;
+            background: #1a1a2e;
+            color: white;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #4CAF50; }
+        .error { background: #f44336; }
+        .info { background: #2196F3; }
+        pre {
+            background: #333;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 VR 藝廊診斷測試</h1>
+    <div id="results"></div>
+
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        async function runTests() {
+            log('開始診斷測試...', 'info');
+            
+            // 測試 1: 檢查當前路徑
+            log(`當前頁面路徑: ${window.location.href}`, 'info');
+            
+            // 測試 2: 檢查是否使用本地伺服器
+            if (window.location.protocol === 'file:') {
+                log('❌ 錯誤：您正在使用 file:// 協定直接開啟檔案', 'error');
+                log('請使用本地伺服器，例如：python -m http.server 8000', 'error');
+                return;
+            } else {
+                log('✅ 正確：使用伺服器開啟', 'success');
+            }
+            
+            // 測試 3: 嘗試載入 JSON
+            try {
+                log('嘗試載入 image_info.json...', 'info');
+                const response = await fetch('gallery_images/image_info.json');
+                log(`HTTP 狀態碼: ${response.status}`, response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    log('❌ 無法載入 JSON 文件', 'error');
+                    log('請確認 gallery_images/image_info.json 檔案存在', 'error');
+                    return;
+                }
+                
+                const text = await response.text();
+                log(`✅ 成功取得 JSON 文件 (${text.length} 字元)`, 'success');
+                
+                // 嘗試解析 JSON
+                const data = JSON.parse(text);
+                log(`✅ JSON 解析成功，共 ${data.length} 件作品`, 'success');
+                
+                // 顯示第一件作品資訊
+                if (data[0]) {
+                    log('第一件作品資訊:', 'info');
+                    const pre = document.createElement('pre');
+                    pre.textContent = JSON.stringify(data[0], null, 2);
+                    results.appendChild(pre);
+                }
+                
+                // 測試 4: 檢查圖片是否可以載入
+                log('測試載入第一張圖片...', 'info');
+                const img = new Image();
+                img.onload = () => {
+                    log(`✅ 圖片載入成功: ${data[0].filename}`, 'success');
+                    log('所有測試通過！您可以開啟主頁面了。', 'success');
+                };
+                img.onerror = () => {
+                    log(`❌ 圖片載入失敗: ${data[0].filename}`, 'error');
+                    log('請確認 gallery_images 資料夾中有圖片檔案', 'error');
+                };
+                img.src = `gallery_images/${data[0].filename}`;
+                
+            } catch (error) {
+                log(`❌ 錯誤: ${error.message}`, 'error');
+                log('錯誤詳情:', 'error');
+                const pre = document.createElement('pre');
+                pre.textContent = error.stack;
+                results.appendChild(pre);
+            }
+        }
+
+        // 執行測試
+        runTests();
+    </script>
+</body>
+</html>

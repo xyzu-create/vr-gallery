@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生作品線上藝廊 VR Gallery</title>
+    <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Microsoft JhengHei', 'PingFang TC', sans-serif;
+        }
+        
+        #info-panel {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 350px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        #info-panel h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #4CAF50;
+        }
+        
+        #info-panel p {
+            margin: 5px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        #controls {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 25px;
+            border-radius: 30px;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+        }
+        
+        #controls button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        #controls button:hover {
+            background: #45a049;
+            transform: scale(1.05);
+        }
+        
+        #comment-panel {
+            position: fixed;
+            top: 50%;
+            right: -400px;
+            transform: translateY(-50%);
+            width: 350px;
+            max-height: 80vh;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 25px;
+            border-radius: 10px 0 0 10px;
+            z-index: 1000;
+            transition: right 0.3s;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+        
+        #comment-panel.open {
+            right: 0;
+        }
+        
+        #comment-panel h3 {
+            margin: 0 0 15px 0;
+            color: #4CAF50;
+            font-size: 18px;
+        }
+        
+        #comment-panel input,
+        #comment-panel textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #4CAF50;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+        
+        #comment-panel textarea {
+            height: 80px;
+            resize: vertical;
+        }
+        
+        #comment-panel button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        #comment-panel button:hover {
+            background: #45a049;
+        }
+        
+        .comment {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid #4CAF50;
+        }
+        
+        .comment-author {
+            font-weight: bold;
+            color: #4CAF50;
+            margin-bottom: 5px;
+        }
+        
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .comment-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        #toggle-comment {
+            position: fixed;
+            top: 50%;
+            right: 0;
+            transform: translateY(-50%);
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 15px 10px;
+            border-radius: 5px 0 0 5px;
+            cursor: pointer;
+            z-index: 999;
+            writing-mode: vertical-rl;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        #toggle-comment:hover {
+            background: #45a049;
+            padding-right: 15px;
+        }
+        
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 10px;
+            z-index: 2000;
+            text-align: center;
+            font-size: 18px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            #info-panel {
+                max-width: 280px;
+                padding: 15px;
+            }
+            
+            #comment-panel {
+                width: 90%;
+                right: -100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">
+        <div class="spinner"></div>
+        正在載入藝廊...
+    </div>
+    
+    <div id="info-panel">
+        <h2>🎨 學生作品線上藝廊</h2>
+        <p><strong>目前作品：</strong><span id="current-artwork">載入中...</span></p>
+        <p><strong>總作品數：</strong>126 件</p>
+        <p><strong>操作說明：</strong></p>
+        <p>• 滑鼠拖曳：環視四周</p>
+        <p>• WASD / 方向鍵：移動</p>
+        <p>• 點擊作品：查看詳細資訊</p>
+        <p>• VR模式：使用VR頭戴裝置體驗</p>
+    </div>
+    
+    <div id="controls">
+        <button id="prev-btn">⬅ 上一件</button>
+        <button id="next-btn">下一件 ➡</button>
+        <button id="vr-btn">🥽 進入VR模式</button>
+    </div>
+    
+    <button id="toggle-comment">留言板</button>
+    
+    <div id="comment-panel">
+        <h3>💬 留言回饋</h3>
+        <p style="font-size: 13px; color: #aaa; margin-bottom: 15px;">
+            針對作品：<span id="comment-artwork-title">-</span>
+        </p>
+        
+        <input type="text" id="comment-name" placeholder="您的名字" maxlength="50">
+        <textarea id="comment-text" placeholder="請留下您的回饋..." maxlength="500"></textarea>
+        <button id="submit-comment">送出留言</button>
+        
+        <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #333;">
+            <h4 style="color: #4CAF50; margin-bottom: 15px;">所有留言</h4>
+            <div id="comments-list"></div>
+        </div>
+    </div>
+
+    <a-scene loading-screen="enabled: false">
+        <!-- 天空背景 -->
+        <a-sky color="#1a1a2e"></a-sky>
+        
+        <!-- 環境光和燈光 -->
+        <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+        <a-entity light="type: directional; intensity: 0.5" position="1 2 1"></a-entity>
+        
+        <!-- 地板 -->
+        <a-plane position="0 0 0" rotation="-90 0 0" width="50" height="50" 
+                 color="#0f3460" shadow="receive: true"></a-plane>
+        
+        <!-- 畫廊結構 -->
+        <a-entity id="gallery-container"></a-entity>
+        
+        <!-- 相機（玩家視角） -->
+        <a-entity id="camera-rig" position="0 1.6 5">
+            <a-camera id="camera" look-controls wasd-controls>
+                <a-cursor color="#4CAF50" opacity="0.8"></a-cursor>
+            </a-camera>
+        </a-entity>
+    </a-scene>
+
+    <script>
+        // 載入圖片信息
+        let artworks = [];
+        let currentIndex = 0;
+        let comments = JSON.parse(localStorage.getItem('galleryComments') || '[]');
+        
+        // 初始化
+        async function init() {
+            try {
+                const response = await fetch('gallery_images/image_info.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                artworks = data;
+                
+                if (!artworks || artworks.length === 0) {
+                    throw new Error('沒有找到作品資料');
+                }
+                
+                createGallery();
+                updateInfo();
+                loadComments();
+                
+                document.getElementById('loading').classList.add('hidden');
+            } catch (error) {
+                console.error('載入失敗:', error);
+                document.getElementById('loading').innerHTML = 
+                    `<p style="color: #ff6b6b;">載入失敗</p>
+                    <p style="font-size: 14px; margin-top: 10px;">錯誤訊息: ${error.message}</p>
+                    <p style="font-size: 12px; margin-top: 10px;">請確認：<br>
+                    1. 使用本地伺服器開啟（不要直接雙擊HTML）<br>
+                    2. gallery_images 資料夾存在<br>
+                    3. image_info.json 檔案存在</p>`;
+            }
+        }
+        
+        // 創建畫廊
+        function createGallery() {
+            const container = document.getElementById('gallery-container');
+            const radius = 8; // 圓形畫廊的半徑
+            const totalWalls = Math.min(artworks.length, 24); // 最多顯示24件作品在圓形畫廊
+            
+            for (let i = 0; i < totalWalls; i++) {
+                const angle = (i / totalWalls) * Math.PI * 2;
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+                const rotation = -(angle * 180 / Math.PI);
+                
+                // 創建畫框
+                const frame = document.createElement('a-box');
+                frame.setAttribute('position', `${x} 1.6 ${z}`);
+                frame.setAttribute('rotation', `0 ${rotation} 0`);
+                frame.setAttribute('width', '2.5');
+                frame.setAttribute('height', '2');
+                frame.setAttribute('depth', '0.05');
+                frame.setAttribute('color', '#16213e');
+                frame.setAttribute('shadow', 'cast: true');
+                
+                // 創建圖片
+                const artwork = artworks[i];
+                const image = document.createElement('a-image');
+                image.setAttribute('src', `gallery_images/${artwork.filename}`);
+                image.setAttribute('position', `${x} 1.6 ${z - 0.03}`);
+                image.setAttribute('rotation', `0 ${rotation} 0`);
+                image.setAttribute('width', '2.3');
+                image.setAttribute('height', '1.8');
+                image.setAttribute('class', 'artwork-image');
+                image.setAttribute('data-index', i);
+                
+                // 點擊事件
+                image.addEventListener('click', () => {
+                    currentIndex = i;
+                    updateInfo();
+                    focusOnArtwork(x, z, rotation);
+                });
+                
+                // 創建標題牌
+                const titleEntity = document.createElement('a-entity');
+                titleEntity.setAttribute('position', `${x} 0.8 ${z - 0.1}`);
+                titleEntity.setAttribute('rotation', `0 ${rotation} 0`);
+                titleEntity.setAttribute('text', {
+                    value: artwork.source.substring(0, 15) + '...',
+                    align: 'center',
+                    width: 2,
+                    color: '#4CAF50'
+                });
+                
+                container.appendChild(frame);
+                container.appendChild(image);
+                container.appendChild(titleEntity);
+            }
+            
+            // 如果作品超過24件，創建額外的展示區域
+            if (artworks.length > 24) {
+                createAdditionalGalleries();
+            }
+        }
+        
+        // 創建額外的畫廊區域
+        function createAdditionalGalleries() {
+            const container = document.getElementById('gallery-container');
+            const remaining = artworks.length - 24;
+            const rows = Math.ceil(remaining / 6);
+            
+            for (let row = 0; row < rows; row++) {
+                for (let col = 0; col < 6; col++) {
+                    const index = 24 + row * 6 + col;
+                    if (index >= artworks.length) break;
+                    
+                    const x = (col - 2.5) * 3;
+                    const z = -15 - row * 4;
+                    
+                    const frame = document.createElement('a-box');
+                    frame.setAttribute('position', `${x} 1.6 ${z}`);
+                    frame.setAttribute('width', '2.5');
+                    frame.setAttribute('height', '2');
+                    frame.setAttribute('depth', '0.05');
+                    frame.setAttribute('color', '#16213e');
+                    
+                    const artwork = artworks[index];
+                    const image = document.createElement('a-image');
+                    image.setAttribute('src', `gallery_images/${artwork.filename}`);
+                    image.setAttribute('position', `${x} 1.6 ${z + 0.03}`);
+                    image.setAttribute('width', '2.3');
+                    image.setAttribute('height', '1.8');
+                    image.setAttribute('data-index', index);
+                    
+                    image.addEventListener('click', () => {
+                        currentIndex = index;
+                        updateInfo();
+                    });
+                    
+                    container.appendChild(frame);
+                    container.appendChild(image);
+                }
+            }
+        }
+        
+        // 聚焦到作品
+        function focusOnArtwork(x, z, rotation) {
+            const cameraRig = document.getElementById('camera-rig');
+            const distance = 3;
+            const newX = x - Math.sin(rotation * Math.PI / 180) * distance;
+            const newZ = z - Math.cos(rotation * Math.PI / 180) * distance;
+            
+            cameraRig.setAttribute('animation', {
+                property: 'position',
+                to: `${newX} 1.6 ${newZ}`,
+                dur: 1000,
+                easing: 'easeInOutQuad'
+            });
+        }
+        
+        // 更新信息面板
+        function updateInfo() {
+            if (!artworks || artworks.length === 0 || !artworks[currentIndex]) {
+                console.error('沒有可用的作品資料');
+                return;
+            }
+            const artwork = artworks[currentIndex];
+            document.getElementById('current-artwork').textContent = 
+                `${artwork.title || artwork.source} (${currentIndex + 1}/${artworks.length})`;
+            document.getElementById('comment-artwork-title').textContent = 
+                artwork.title || artwork.source;
+        }
+        
+        // 導航控制
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + artworks.length) % artworks.length;
+            updateInfo();
+            navigateToArtwork(currentIndex);
+        });
+        
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % artworks.length;
+            updateInfo();
+            navigateToArtwork(currentIndex);
+        });
+        
+        function navigateToArtwork(index) {
+            const images = document.querySelectorAll('.artwork-image');
+            if (images[index]) {
+                images[index].click();
+            }
+        }
+        
+        // VR按鈕
+        document.getElementById('vr-btn').addEventListener('click', () => {
+            const scene = document.querySelector('a-scene');
+            if (scene) {
+                scene.enterVR();
+            }
+        });
+        
+        // 留言板控制
+        const commentPanel = document.getElementById('comment-panel');
+        const toggleBtn = document.getElementById('toggle-comment');
+        
+        toggleBtn.addEventListener('click', () => {
+            commentPanel.classList.toggle('open');
+            toggleBtn.textContent = commentPanel.classList.contains('open') ? '關閉' : '留言板';
+        });
+        
+        // 提交留言
+        document.getElementById('submit-comment').addEventListener('click', () => {
+            const name = document.getElementById('comment-name').value.trim();
+            const text = document.getElementById('comment-text').value.trim();
+            
+            if (!name || !text) {
+                alert('請填寫姓名和留言內容');
+                return;
+            }
+            
+            if (!artworks || !artworks[currentIndex]) {
+                alert('無法取得作品資訊，請重新整理頁面');
+                return;
+            }
+            
+            const artwork = artworks[currentIndex];
+            const comment = {
+                artworkIndex: currentIndex,
+                artworkTitle: artwork.title || artwork.source,
+                author: name,
+                text: text,
+                timestamp: new Date().toISOString()
+            };
+            
+            comments.push(comment);
+            localStorage.setItem('galleryComments', JSON.stringify(comments));
+            
+            document.getElementById('comment-name').value = '';
+            document.getElementById('comment-text').value = '';
+            
+            loadComments();
+            alert('留言已送出！');
+        });
+        
+        // 載入留言
+        function loadComments() {
+            const commentsList = document.getElementById('comments-list');
+            commentsList.innerHTML = '';
+            
+            const filteredComments = comments
+                .filter(c => c.artworkIndex === currentIndex)
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (filteredComments.length === 0) {
+                commentsList.innerHTML = '<p style="color: #888; font-size: 13px;">還沒有留言，成為第一個留言的人吧！</p>';
+                return;
+            }
+            
+            filteredComments.forEach(comment => {
+                const commentDiv = document.createElement('div');
+                commentDiv.className = 'comment';
+                
+                const date = new Date(comment.timestamp);
+                const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${String(date.getMinutes()).padStart(2, '0')}`;
+                
+                commentDiv.innerHTML = `
+                    <div class="comment-author">${comment.author}</div>
+                    <div class="comment-text">${comment.text}</div>
+                    <div class="comment-time">${timeStr}</div>
+                `;
+                
+                commentsList.appendChild(commentDiv);
+            });
+        }
+        
+        // 監聽當前作品變化以更新留言
+        setInterval(() => {
+            if (!artworks || !artworks[currentIndex]) return;
+            const currentTitle = document.getElementById('comment-artwork-title').textContent;
+            const artworkTitle = artworks[currentIndex].title || artworks[currentIndex].source;
+            if (currentTitle !== artworkTitle) {
+                loadComments();
+            }
+        }, 500);
+        
+        // 啟動
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
