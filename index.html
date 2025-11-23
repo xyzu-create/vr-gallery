@@ -207,6 +207,167 @@
             display: none;
         }
         
+        /* 作品詳情彈出視窗 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #2C2416 0%, #1a1410 100%);
+            border-radius: 15px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 10px 50px rgba(212, 175, 55, 0.3);
+            border: 2px solid #D4AF37;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 35px;
+            color: #D4AF37;
+            cursor: pointer;
+            z-index: 2001;
+            transition: all 0.3s;
+            font-weight: bold;
+            line-height: 1;
+        }
+        
+        .close-modal:hover {
+            color: #FFD700;
+            transform: rotate(90deg);
+        }
+        
+        .modal-body {
+            display: flex;
+            padding: 40px;
+            gap: 30px;
+        }
+        
+        .modal-image-container {
+            flex: 1.5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            border-radius: 10px;
+            padding: 20px;
+            max-height: 70vh;
+        }
+        
+        .modal-image-container img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 5px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-info {
+            flex: 1;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .modal-info h2 {
+            color: #D4AF37;
+            font-size: 24px;
+            margin: 0;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #8B7355;
+        }
+        
+        .modal-details {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #D4AF37;
+        }
+        
+        .modal-details p {
+            margin: 12px 0;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .modal-details strong {
+            color: #D4AF37;
+            margin-right: 8px;
+        }
+        
+        .modal-details span {
+            color: #E8E8E8;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: auto;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 20px;
+            background: #8B7355;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .modal-btn:hover {
+            background: #A0826D;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 115, 85, 0.4);
+        }
+        
+        @media (max-width: 968px) {
+            .modal-body {
+                flex-direction: column;
+                padding: 20px;
+            }
+            
+            .modal-image-container {
+                max-height: 50vh;
+            }
+            
+            .modal-content {
+                max-width: 95%;
+                max-height: 95%;
+            }
+            
+            .close-modal {
+                font-size: 28px;
+                top: 10px;
+                right: 15px;
+            }
+        }
+        
         @media (max-width: 768px) {
             #info-panel {
                 max-width: 280px;
@@ -256,13 +417,39 @@
         <button id="submit-comment">送出留言</button>
         
         <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid #333;">
-            <h4 style="color: #4CAF50; margin-bottom: 15px;">所有留言</h4>
+            <h4 style="color: #D4AF37; margin-bottom: 15px;">所有留言</h4>
             <div id="comments-list"></div>
         </div>
     </div>
 
+    <!-- 作品詳情彈出視窗 -->
+    <div id="artwork-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close-modal" id="close-modal">&times;</span>
+            <div class="modal-body">
+                <div class="modal-image-container">
+                    <img id="modal-image" src="" alt="作品">
+                </div>
+                <div class="modal-info">
+                    <h2 id="modal-title">作品標題</h2>
+                    <div class="modal-details">
+                        <p><strong>📁 檔案名稱：</strong><span id="modal-filename"></span></p>
+                        <p><strong>📚 來源：</strong><span id="modal-source"></span></p>
+                        <p><strong>📄 頁碼：</strong><span id="modal-page"></span></p>
+                        <p><strong>🔢 作品編號：</strong><span id="modal-index"></span></p>
+                    </div>
+                    <div class="modal-actions">
+                        <button id="modal-prev" class="modal-btn">⬅ 上一件</button>
+                        <button id="modal-next" class="modal-btn">下一件 ➡</button>
+                        <button id="modal-comment" class="modal-btn">💬 留言</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <a-scene loading-screen="enabled: false">
-        <!-- 360度美術館背景 -->
+        <!-- 真實美術館 360度背景 -->
         <a-sky src="gallery_360_background.jpg" rotation="0 0 0"></a-sky>
         
         <!-- 環境光和燈光（調整為更自然的美術館光線）-->
@@ -476,7 +663,7 @@
             image.addEventListener('click', () => {
                 currentIndex = index;
                 updateInfo();
-                focusOnArtwork(x, z, rotation);
+                showArtworkModal(index);
             });
             
             // 創建標題牌（更小更精緻）
@@ -648,6 +835,94 @@
                 loadComments();
             }
         }, 500);
+        
+        // ==================== 作品詳情彈出視窗功能 ====================
+        
+        function showArtworkModal(index) {
+            const modal = document.getElementById('artwork-modal');
+            const artwork = artworks[index];
+            
+            // 更新彈出視窗內容
+            document.getElementById('modal-image').src = `gallery_images/${artwork.filename}`;
+            document.getElementById('modal-title').textContent = artwork.title || artwork.source;
+            document.getElementById('modal-filename').textContent = artwork.filename;
+            document.getElementById('modal-source').textContent = artwork.source;
+            document.getElementById('modal-page').textContent = `第 ${artwork.page} 頁`;
+            document.getElementById('modal-index').textContent = `${index + 1} / ${artworks.length}`;
+            
+            // 顯示彈出視窗
+            modal.classList.remove('hidden');
+            
+            // 暫停 VR 場景的控制
+            const scene = document.querySelector('a-scene');
+            if (scene) {
+                const camera = document.getElementById('camera');
+                if (camera) {
+                    camera.setAttribute('look-controls', 'enabled', false);
+                    camera.setAttribute('wasd-controls', 'enabled', false);
+                }
+            }
+        }
+        
+        function closeArtworkModal() {
+            const modal = document.getElementById('artwork-modal');
+            modal.classList.add('hidden');
+            
+            // 恢復 VR 場景的控制
+            const camera = document.getElementById('camera');
+            if (camera) {
+                camera.setAttribute('look-controls', 'enabled', true);
+                camera.setAttribute('wasd-controls', 'enabled', true);
+            }
+        }
+        
+        // 關閉按鈕事件
+        document.getElementById('close-modal').addEventListener('click', closeArtworkModal);
+        
+        // 點擊背景關閉
+        document.getElementById('artwork-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'artwork-modal') {
+                closeArtworkModal();
+            }
+        });
+        
+        // ESC 鍵關閉
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('artwork-modal');
+                if (!modal.classList.contains('hidden')) {
+                    closeArtworkModal();
+                }
+            }
+        });
+        
+        // 上一件作品
+        document.getElementById('modal-prev').addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + artworks.length) % artworks.length;
+            updateInfo();
+            showArtworkModal(currentIndex);
+        });
+        
+        // 下一件作品
+        document.getElementById('modal-next').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % artworks.length;
+            updateInfo();
+            showArtworkModal(currentIndex);
+        });
+        
+        // 留言按鈕
+        document.getElementById('modal-comment').addEventListener('click', () => {
+            closeArtworkModal();
+            const commentPanel = document.getElementById('comment-panel');
+            if (!commentPanel.classList.contains('open')) {
+                commentPanel.classList.add('open');
+                document.getElementById('toggle-comment').textContent = '關閉';
+            }
+            // 聚焦到留言輸入框
+            document.getElementById('comment-text').focus();
+        });
+        
+        // ==================== 結束彈出視窗功能 ====================
         
         // 啟動
         window.addEventListener('load', init);
